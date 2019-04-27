@@ -1,0 +1,11 @@
+kernel32.dll,file/memory management; process and thread creation
+advapi32.dll,registry manipulation
+user32.dll,user interface management
+ws2_32.dll,TCP/IP networking functions
+wsock.dll,TCP/IP networking functions
+wsock32.dll,TCP/IP networking functions
+netapi32.dll,network interfaces querying/management
+wininet.dll,high-level networking functions
+urlmon.dll,high-level networking functions
+crypt32.dll,cryptographic functions
+

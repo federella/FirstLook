@@ -1,8 +1,9 @@
 # First Look
-FirstLook is a tool for initial malware triage.\nIt quickly gathers some basic info to provide initial context to the analyst.\n
+FirstLook is a tool for initial malware triage.
+It offers a way to quickly gather some basic contextual info before starting the actual reversing process.
 
-##How it works
-Right now the script provides the following information:\n
+## How it works
+Right now the script provides the following information:
 - File size
 - File type (by looking at the __magic bytes__)
 - DLLs (also provides basic contextual info for standard libraries)

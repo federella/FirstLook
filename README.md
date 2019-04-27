@@ -1,6 +1,14 @@
-FirstLook is a tool for initial malware triage. It quickly gathers some basic info to provide initial context to the analyst.
+# First Look
+FirstLook is a tool for initial malware triage.\nIt quickly gathers some basic info to provide initial context to the analyst.\n
 
-What it currently does:
--Check the file size and type
--Check DLLs and imports
--Check for known interesting string formats (timestamps, IP addresses, urls...)
+##How it works
+Right now the script provides the following information:\n
+- File size
+- File type (by looking at the __magic bytes__)
+- DLLs (also provides basic contextual info for standard libraries)
+- Imports
+- Interesting strings (IPs, date/time format, URLs...)
+## Getting Started
+### Usage
+Use `firstlook.sh <filename>` to launch the script.
+

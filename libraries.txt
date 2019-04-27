@@ -8,4 +8,4 @@ netapi32.dll,network interfaces querying/management
 wininet.dll,high-level networking functions
 urlmon.dll,high-level networking functions
 crypt32.dll,cryptographic functions
-
+shell32.dll,process manipulation

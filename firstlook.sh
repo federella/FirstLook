@@ -12,30 +12,29 @@ STANDARD="\e[0m"
 TYPES="filetypes.txt"
 LIB="libraries.txt"
 
+if [ $# -ne 1 ]
+then
+	echo "Usage: firstlook.sh <filename>"
+	exit 1
+fi
+
+if [ ! -f $1 ]
+then
+	echo "File \"$1\" does not exists."
+	exit 2
+fi
+
+
+
+
+
 printf "$BOLD$MAGENTA***GENERAL INFO***\n$STANDARD"
 printf "\tName: $1\n" #filename
 size=`stat --format="%s" $1` #filesize
 printf "\tSize: $size bytes\n"
+type=`file $1 | awk -F: '{print $2}'\n`
+printf "\tType:$type\n"
 
-#CHECKING THE FILE TYPE BY USING MAGIC BYTES
-string=`xxd -l 16 $1`
-bytes_arr=()
-types_arr=()
-while IFS=, read key val
-do
-		bytes_arr+=("$val")
-		types_arr+=("$key")
-done < $TYPES
-
-for i in ${!bytes_arr[@]}
-do
-	magic_byte="${bytes_arr[$i]}"
-	file_type="${types_arr[$i]}"
-	echo $string | grep "$magic_byte" > /dev/null
-	if [ $? -eq 0 ];then
-		printf "\tType: %s\n" "$file_type"
-	fi
-done
 
 #KNOWN DLLs"
 dll_arrays=($(strings $1 | grep ".dll" | tr '[:upper:]' '[:lower:]'))

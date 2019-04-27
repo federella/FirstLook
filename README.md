@@ -4,8 +4,7 @@ It offers a way to quickly gather some basic contextual info before starting the
 
 ## How it works
 Right now the script provides the following information:
-- File size
-- File type (by looking at the __magic bytes__)
+- File size and type
 - DLLs (also provides basic contextual info for standard libraries)
 - Imports
 - Interesting strings (IPs, date/time format, URLs...)

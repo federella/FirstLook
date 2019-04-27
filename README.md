@@ -1,5 +1,6 @@
 # First Look
 FirstLook is a tool for initial malware triage.
+
 It offers a way to quickly gather some basic contextual info before starting the actual reversing process.
 
 ## How it works

@@ -69,6 +69,7 @@ printf "\t";strings $1 | grep -Ei ".*https?://.*|s?ftps?://.*"
 printf "\t";strings $1 | grep -Ei "[[:digit:]]{1,3}:[[:digit:]]{1,3}:[[:digit:]]{1,3}"  #time
 printf "\t";strings $1 | grep -Ei "[[:digit:]]{1,2}[:/-][[:digit:]]{1,2}[:/-][[:digit:]]{2,4}"  #DD-MM-YYYY
 printf "\t";strings $1 | grep -Ei "[[:digit:]]{2,4}[:/-][[:digit:]]{1,2}[:/-][[:digit:]]{1,2}"  #YYYY-DD-MM
+printf "\t";strings $1 | grep -Ei "^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$" # Bitcoin addresses
 file_f=($(strings $1 |  grep -Ei "file"|grep -Ei "^[[:alpha:]]*$"))
 
 #INTERESTING FUNCTIONS

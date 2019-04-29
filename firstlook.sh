@@ -23,20 +23,27 @@ then
 	exit 2
 fi
 
+SAMPLE=$1
 
+# TMPDIR environment variable can be used to choose a different base directory
+# for temporary files
+WORKDIR=$(mktemp -d "${TMPDIR:-/tmp/}firstlook.XXXXXXXXXXX")
 
+printf "$BOLD***EXTRACTING INFOS***\n$STANDARD"
+strings $SAMPLE > $WORKDIR/sample.strings
 
+printf "done\n\n"
 
 printf "$BOLD$MAGENTA***GENERAL INFO***\n$STANDARD"
-printf "\tName: $1\n" #filename
-size=`stat --format="%s" $1` #filesize
+printf "\tName: $SAMPLE\n" #filename
+size=`stat --format="%s" $SAMPLE` #filesize
 printf "\tSize: $size bytes\n"
-type=`file $1 | awk -F: '{print $2}'\n`
+type=`file $SAMPLE | awk -F: '{print $2}'\n`
 printf "\tType:$type\n"
 
 
 #KNOWN DLLs
-dll_arrays=($(strings $1 | grep ".dll" | tr '[:upper:]' '[:lower:]'))
+dll_arrays=($(grep ".dll" $WORKDIR/sample.strings | tr '[:upper:]' '[:lower:]'))
 unknown_lib=()
 printf "$BOLD$RED\n***KNOWN LIBRARIES***\n$STANDARD"
 for i in "${dll_arrays[@]}"
@@ -63,14 +70,14 @@ fi
 #INTERESTING STRINGS
 printf "$BOLD$GREEN\n***INTERESTING STRINGS***\n$STANDARD"
 
-printf "\t"; strings $1 |  grep -Ei "[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}" #ip addresses
-printf "\t";strings $1 |  grep -Ei ".*@.*\..*"  #email address
-printf "\t";strings $1 | grep -Ei ".*https?://.*|s?ftps?://.*"
-printf "\t";strings $1 | grep -Ei "[[:digit:]]{1,3}:[[:digit:]]{1,3}:[[:digit:]]{1,3}"  #time
-printf "\t";strings $1 | grep -Ei "[[:digit:]]{1,2}[:/-][[:digit:]]{1,2}[:/-][[:digit:]]{2,4}"  #DD-MM-YYYY
-printf "\t";strings $1 | grep -Ei "[[:digit:]]{2,4}[:/-][[:digit:]]{1,2}[:/-][[:digit:]]{1,2}"  #YYYY-DD-MM
-printf "\t";strings $1 | grep -Ei "^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$" # Bitcoin addresses
-file_f=($(strings $1 |  grep -Ei "file"|grep -Ei "^[[:alpha:]]*$"))
+printf "\t"; grep -Ei "[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}" $WORKDIR/sample.strings #ip addresses
+printf "\t"; grep -Ei ".*@.*\..*" $WORKDIR/sample.strings #email address
+printf "\t"; grep -Ei ".*https?://.*|s?ftps?://.*|tcp://" $WORKDIR/sample.strings # http/(s)ftp(s)/tcp addresses
+printf "\t"; grep -Ei "[[:digit:]]{1,3}:[[:digit:]]{1,3}:[[:digit:]]{1,3}" $WORKDIR/sample.strings #time
+printf "\t"; grep -Ei "[[:digit:]]{1,2}[:/-][[:digit:]]{1,2}[:/-][[:digit:]]{2,4}" $WORKDIR/sample.strings #DD-MM-YYYY
+printf "\t"; grep -Ei "[[:digit:]]{2,4}[:/-][[:digit:]]{1,2}[:/-][[:digit:]]{1,2}" $WORKDIR/sample.strings #YYYY-DD-MM
+printf "\t"; grep -Ei "^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$" $WORKDIR/sample.strings # Bitcoin addresses
+file_f=($(grep -Ei "file" $WORKDIR/sample.strings | grep -Ei "^[[:alpha:]]*$"))
 
 #INTERESTING FUNCTIONS
 if [ $? -eq 0 ]
@@ -79,14 +86,14 @@ then
 	printf '\t%s\n' "${file_f[@]}"
 fi
 #
-mem_f=($(strings $1 | grep -Ei "memory|mem|alloc"|grep -Ei "^[[:alpha:]]*$"))
+mem_f=($(grep -Ei "memory|mem|alloc" $WORKDIR/sample.strings |grep -Ei "^[[:alpha:]]*$"))
 if [ $? -eq 0 ]
 then
 	printf "$BOLD$CYAN\n***MEMORY FUNCTIONS***\n$STANDARD"
 	printf '\t%s\n' "${mem_f[@]}"
 fi
 
-net_f=($(strings $1 | grep -Ei "url|http|ftp|host|hostname|internet|bind"| grep -Ei "^[[:alpha:]]*$"))
+net_f=($(grep -Ei "url|http|ftp|host|hostname|internet|bind" $WORKDIR/sample.strings | grep -Ei "^[[:alpha:]]*$"))
 if [ $? -eq 0 ]
 then
 	printf "$BOLD$CYAN\n***NETWORK FUNCTIONS***\n$STANDARD"
@@ -94,23 +101,25 @@ then
 fi
 
 # Looking for any functions that can crypt files
-crypt_f=($(strings $1 | grep -Ei "crypt|Key|Decrypt|Encrypt"| grep -Ei "^[[:alpha:]]*$"))
+crypt_f=($(grep -Ei "crypt|Key|Decrypt|Encrypt" $WORKDIR/sample.strings | grep -Ei "^[[:alpha:]]*$"))
 if [ $? -eq 0 ]
 then
 	printf "$BOLD$CYAN\n***CRYPTOGRAPHIC FUNCTIONS***\n$STANDARD"
 	printf '\t%s\n' "${proc_f[@]}"
 fi
 
-proc_f=($(strings $1 | grep -Ei "process|proc|thread|shell"|grep -Ei "^[[:alpha:]]*$"))
+proc_f=($(grep -Ei "process|proc|thread|shell" $WORKDIR/sample.strings | grep -Ei "^[[:alpha:]]*$"))
 if [ $? -eq 0 ]
 then
 	printf "$BOLD$CYAN\n***PROCESS/THREAD FUNCTIONS***\n$STANDARD"
 	printf '\t%s\n' "${proc_f[@]}"
 fi
 
-reg_f=($(strings $1 | grep -Ei "reg|registry"|grep -Ei "^[[:alpha:]]*$"))
+reg_f=($(grep -Ei "reg|registry" $WORKDIR/sample.strings | grep -Ei "^[[:alpha:]]*$"))
 if [ $? -eq 0 ]
 then
 	printf "$BOLD$CYAN\n***REGISTRY FUNCTIONS***\n$STANDARD"
 	printf '\t%s\n' "${reg_f[@]}"
 fi
+
+rm -rf $WORKDIR

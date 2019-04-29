@@ -9,7 +9,6 @@ CYAN="\e[96m"
 STANDARD="\e[0m"
 
 
-TYPES="filetypes.txt"
 LIB="libraries.txt"
 
 if [ $# -ne 1 ]
@@ -36,7 +35,7 @@ type=`file $1 | awk -F: '{print $2}'\n`
 printf "\tType:$type\n"
 
 
-#KNOWN DLLs"
+#KNOWN DLLs
 dll_arrays=($(strings $1 | grep ".dll" | tr '[:upper:]' '[:lower:]'))
 unknown_lib=()
 printf "$BOLD$RED\n***KNOWN LIBRARIES***\n$STANDARD"
@@ -70,6 +69,7 @@ printf "\t";strings $1 | grep -Ei ".*https?://.*|s?ftps?://.*"
 printf "\t";strings $1 | grep -Ei "[[:digit:]]{1,3}:[[:digit:]]{1,3}:[[:digit:]]{1,3}"  #time
 printf "\t";strings $1 | grep -Ei "[[:digit:]]{1,2}[:/-][[:digit:]]{1,2}[:/-][[:digit:]]{2,4}"  #DD-MM-YYYY
 printf "\t";strings $1 | grep -Ei "[[:digit:]]{2,4}[:/-][[:digit:]]{1,2}[:/-][[:digit:]]{1,2}"  #YYYY-DD-MM
+printf "\t";strings $1 | grep -Ei "^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$" # Bitcoin addresses
 file_f=($(strings $1 |  grep -Ei "file"|grep -Ei "^[[:alpha:]]*$"))
 
 #INTERESTING FUNCTIONS
@@ -91,6 +91,14 @@ if [ $? -eq 0 ]
 then
 	printf "$BOLD$CYAN\n***NETWORK FUNCTIONS***\n$STANDARD"
 	printf '\t%s\n' "${net_f[@]}"
+fi
+
+# Looking for any functions that can crypt files
+crypt_f=($(strings $1 | grep -Ei "crypt|Key|Decrypt|Encrypt"| grep -Ei "^[[:alpha:]]*$"))
+if [ $? -eq 0 ]
+then
+	printf "$BOLD$CYAN\n***CRYPTOGRAPHIC FUNCTIONS***\n$STANDARD"
+	printf '\t%s\n' "${proc_f[@]}"
 fi
 
 proc_f=($(strings $1 | grep -Ei "process|proc|thread|shell"|grep -Ei "^[[:alpha:]]*$"))

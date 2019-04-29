@@ -30,7 +30,13 @@ SAMPLE=$1
 WORKDIR=$(mktemp -d "${TMPDIR:-/tmp/}firstlook.XXXXXXXXXXX")
 
 printf "$BOLD***EXTRACTING INFOS***\n$STANDARD"
-strings $SAMPLE > $WORKDIR/sample.strings
+strings $SAMPLE > $WORKDIR/sample.strings.std
+strings -e b $SAMPLE > $WORKDIR/sample.strings.utf16be
+strings -e l $SAMPLE > $WORKDIR/sample.strings.utf16le
+strings -e B $SAMPLE > $WORKDIR/sample.strings.utf32be
+strings -e L $SAMPLE > $WORKDIR/sample.strings.utf32le
+
+cat $WORKDIR/sample.strings.* | sort | uniq > $WORKDIR/sample.strings
 
 printf "done\n\n"
 
@@ -70,16 +76,19 @@ fi
 #INTERESTING STRINGS
 printf "$BOLD$GREEN\n***INTERESTING STRINGS***\n$STANDARD"
 
-printf "\t"; grep -Ei "[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}" $WORKDIR/sample.strings #ip addresses
-printf "\t"; grep -Ei ".*@.*\..*" $WORKDIR/sample.strings #email address
-printf "\t"; grep -Ei ".*https?://.*|s?ftps?://.*|tcp://" $WORKDIR/sample.strings # http/(s)ftp(s)/tcp addresses
-printf "\t"; grep -Ei "[[:digit:]]{1,3}:[[:digit:]]{1,3}:[[:digit:]]{1,3}" $WORKDIR/sample.strings #time
-printf "\t"; grep -Ei "[[:digit:]]{1,2}[:/-][[:digit:]]{1,2}[:/-][[:digit:]]{2,4}" $WORKDIR/sample.strings #DD-MM-YYYY
-printf "\t"; grep -Ei "[[:digit:]]{2,4}[:/-][[:digit:]]{1,2}[:/-][[:digit:]]{1,2}" $WORKDIR/sample.strings #YYYY-DD-MM
-printf "\t"; grep -Ei "^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$" $WORKDIR/sample.strings # Bitcoin addresses
-file_f=($(grep -Ei "file" $WORKDIR/sample.strings | grep -Ei "^[[:alpha:]]*$"))
+printf "\t"; grep -Ei "[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}" $WORKDIR/sample.strings > $WORKDIR/interesting #ip addresses
+printf "\t"; grep -Ei ".*@.*\..*" $WORKDIR/sample.strings >> $WORKDIR/interesting #email address
+printf "\t"; grep -Ei ".*https?://.*|s?ftps?://.*|tcp://" $WORKDIR/sample.strings >> $WORKDIR/interesting # http/(s)ftp(s)/tcp addresses
+printf "\t"; grep -Eoi "([a-z0-9][a-z0-9-]{1,61}[a-z0-9]\.[a-z]{2,})*" $WORKDIR/sample.strings | grep -viE '\.dll|\.exe' >> $WORKDIR/interesting # domains, file names (incidentally)
+printf "\t"; grep -Ei "[[:digit:]]{1,3}:[[:digit:]]{1,3}:[[:digit:]]{1,3}" $WORKDIR/sample.strings >> $WORKDIR/interesting #time
+printf "\t"; grep -Ei "[[:digit:]]{1,2}[:/-][[:digit:]]{1,2}[:/-][[:digit:]]{2,4}" $WORKDIR/sample.strings >> $WORKDIR/interesting #DD-MM-YYYY
+printf "\t"; grep -Ei "^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$" $WORKDIR/sample.strings >> $WORKDIR/interesting # Bitcoin addresses
+printf "\t"; grep -Ei "[[:digit:]]{2,4}[:/-][[:digit:]]{1,2}[:/-][[:digit:]]{1,2}" $WORKDIR/sample.strings >> $WORKDIR/interesting #YYYY-DD-MM
+cat $WORKDIR/interesting | sort | uniq
 
 #INTERESTING FUNCTIONS
+file_f=($(grep -Ei "file" $WORKDIR/sample.strings | grep -Ei "^[[:alpha:]]*$"))
+
 if [ $? -eq 0 ]
 then
 	printf "$BOLD$CYAN\n***FILE FUNCTIONS***\n$STANDARD"
@@ -121,5 +130,7 @@ then
 	printf "$BOLD$CYAN\n***REGISTRY FUNCTIONS***\n$STANDARD"
 	printf '\t%s\n' "${reg_f[@]}"
 fi
+
+printf "\n"
 
 rm -rf $WORKDIR

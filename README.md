@@ -10,8 +10,8 @@ Right now the script provides the following information:
 - Imports
 - Interesting strings (IPs, date/time format, URLs...)
 - **NEW!** support for packers indicators
-- **NEW!** bitcoin addresses check (thanks to __serhack__) 
-- **NEW!** optimized code (thanks to __Enrico204__)
+- **NEW!** bitcoin addresses check (thanks to _serhack_) 
+- **NEW!** optimized code (thanks to _Enrico204_)
 ## Getting Started
 ### Usage
 Use `firstlook.sh <filename>` to launch the script.

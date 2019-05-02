@@ -6,6 +6,7 @@ MAGENTA="\e[35m"
 GREEN="\e[92m"
 RED="\e[91m"
 CYAN="\e[96m"
+YELLOW="\e[93m"
 STANDARD="\e[0m"
 
 
@@ -45,8 +46,11 @@ printf "\tName: $SAMPLE\n" #filename
 size=`stat --format="%s" $SAMPLE` #filesize
 printf "\tSize: $size bytes\n"
 type=`file $SAMPLE | awk -F: '{print $2}'\n`
-printf "\tType:$type\n"
-
+printf "\tType: $type\n"
+md5_val=`md5sum $SAMPLE | awk '{print $1}'\n`
+printf "\tMD5: $md5_val\n"
+sha=`sha256sum $SAMPLE | awk '{print $1}'\n`
+printf "\tSHA256: $sha\n"
 
 #KNOWN DLLs
 dll_arrays=($(grep ".dll" $WORKDIR/sample.strings | tr '[:upper:]' '[:lower:]'))
@@ -72,18 +76,24 @@ then
 	done
 fi
 
+#PACKER INDICATORS
+packer_i=($(grep -Ei "\.UPX[0-9]|UPX|LoadLibraryA?|GetProcAddress|SR" $WORKDIR/sample.strings))
+if [ $? -eq 0 ]
+then
+	printf "$BOLD$YELLOW\n***POSSIBLE PACKERS INDICATORS***\n$STANDARD"
+	printf '\t%s\n' "${packer_i[@]}"
+fi
 
 #INTERESTING STRINGS
 printf "$BOLD$GREEN\n***INTERESTING STRINGS***\n$STANDARD"
-
-printf "\t"; grep -Ei "[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}" $WORKDIR/sample.strings > $WORKDIR/interesting #ip addresses
-printf "\t"; grep -Ei ".*@.*\..*" $WORKDIR/sample.strings >> $WORKDIR/interesting #email address
-printf "\t"; grep -Ei ".*https?://.*|s?ftps?://.*|tcp://" $WORKDIR/sample.strings >> $WORKDIR/interesting # http/(s)ftp(s)/tcp addresses
-printf "\t"; grep -Eoi "([a-z0-9][a-z0-9-]{1,61}[a-z0-9]\.[a-z]{2,})*" $WORKDIR/sample.strings | grep -viE '\.dll|\.exe' >> $WORKDIR/interesting # domains, file names (incidentally)
-printf "\t"; grep -Ei "[[:digit:]]{1,3}:[[:digit:]]{1,3}:[[:digit:]]{1,3}" $WORKDIR/sample.strings >> $WORKDIR/interesting #time
-printf "\t"; grep -Ei "[[:digit:]]{1,2}[:/-][[:digit:]]{1,2}[:/-][[:digit:]]{2,4}" $WORKDIR/sample.strings >> $WORKDIR/interesting #DD-MM-YYYY
-printf "\t"; grep -Ei "^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$" $WORKDIR/sample.strings >> $WORKDIR/interesting # Bitcoin addresses
-printf "\t"; grep -Ei "[[:digit:]]{2,4}[:/-][[:digit:]]{1,2}[:/-][[:digit:]]{1,2}" $WORKDIR/sample.strings >> $WORKDIR/interesting #YYYY-DD-MM
+grep -Ei "[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}" $WORKDIR/sample.strings > $WORKDIR/interesting #ip addresses
+grep -Ei ".*@.*\..*" $WORKDIR/sample.strings >> $WORKDIR/interesting #email address
+grep -Ei ".*https?://.*|s?ftps?://.*|tcp://" $WORKDIR/sample.strings >> $WORKDIR/interesting # http/(s)ftp(s)/tcp addresses
+grep -Eoi "([a-z0-9][a-z0-9-]{1,61}[a-z0-9]\.[a-z]{2,})*" $WORKDIR/sample.strings | grep -viE '\.dll|\.exe' >> $WORKDIR/interesting # domains, file names (incidentally)
+grep -Ei "[[:digit:]]{1,3}:[[:digit:]]{1,3}:[[:digit:]]{1,3}" $WORKDIR/sample.strings >> $WORKDIR/interesting #time
+grep -Ei "[[:digit:]]{1,2}[:/-][[:digit:]]{1,2}[:/-][[:digit:]]{2,4}" $WORKDIR/sample.strings >> $WORKDIR/interesting #DD-MM-YYYY
+grep -Ei "^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$" $WORKDIR/sample.strings >> $WORKDIR/interesting # Bitcoin addresses
+grep -Ei "[[:digit:]]{2,4}[:/-][[:digit:]]{1,2}[:/-][[:digit:]]{1,2}" $WORKDIR/sample.strings >> $WORKDIR/interesting #YYYY-DD-MM
 cat $WORKDIR/interesting | sort | uniq
 
 #INTERESTING FUNCTIONS
